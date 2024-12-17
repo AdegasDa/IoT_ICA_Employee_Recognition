@@ -20,6 +20,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
 app.secret_key = config.get('APP_SECRET_KEY')
 db.init_app(app)
 
+is_admin = str(session["user_id"]) == config.get("GOOGLE_ADMIN_ID")
 
 def login_is_required(function):
     @wraps(function) 
@@ -56,8 +57,7 @@ def signup():
 @app.route("/index", methods = ["GET", "POST"])
 @login_is_required
 def index():
-    
-    return render_template("/index.html")
+    return render_template("/index.html", is_admin = is_admin)
 
 
 @app.route("/admin", methods = ["GET", "POST"])
@@ -68,7 +68,7 @@ def admin():
     return render_template("/admin.html", users = users)
 
 
-@app.route("/logout", methods = ["GET", "POST"])
+@app.route("/logout", methods = ["POST"])
 def logout():
     my_db.logout(session['user_email'])
     session.clear()
@@ -94,7 +94,7 @@ def login():
 def register():
     email = request.form['email']
     password = request.form['password']
-    confirm_password = request.form['confirm_password']
+    confirm_password = request.form['confirm-password']
 
     res = my_db.register(email, password, confirm_password)
     if (res['state'] == 1):
@@ -104,9 +104,9 @@ def register():
             session['user_id'] = user_info['user_id']
             session['user_email'] = user_info['user_email']
             return redirect("/index")
-        return redirect("/")
+        return redirect("/signup")
     else:
-        return redirect("/")
+        return redirect("/signup")
 
 
 if __name__ == '__main__':
