@@ -1,0 +1,48 @@
+{% extends "layout.html"%}
+
+{%block body%}
+<section class="text-center min-vh-100 d-flex align-items-center text-lg-start">
+    <style>
+      .cascading-right {
+        margin-right: -50px;
+      }
+
+      @media (max-width: 991.98px) {
+        .cascading-right {
+          margin-right: 0;
+        }
+      }
+    </style>
+
+    <div class="container my-auto">
+      <div class="row g-0 align-items-center">
+        <div class="col-lg-6 mb-5 mb-lg-0 shadow-lg bg-">
+          <div class="card cascading-right bg-body-tertiary" style="backdrop-filter: blur(30px);">
+            <div class="card-body p-5 shadow-5 text-center">
+              <h2 class="fw-bold mb-4">Sign In</h2>
+              <form action="/login" method="post">
+                <div data-mdb-input-init class="form-outline mb-2">
+                    <input type="email" placeholder="Email address" name="email" id="email" class="form-control text-start" />
+                </div>
+
+                <div data-mdb-input-init class="form-outline mb-4">
+                    <input type="password" placeholder="Password" name="password" id="password" class="form-control" />
+                </div>
+
+                <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4 w-100">
+                  Log In
+                </button>
+              </form>
+              <a href="{{ url_for('signup') }}" class="link-underline-opacity-0">Don't have an account yet?</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6 mb-5 mb-lg-0 shadow-lg rounded-4">
+          <img src="https://miro.medium.com/v2/resize:fit:2000/1*DPNoWJ3Au35Fw58Sn2oj1w.png" class="w-100 h-100 rounded-4 shadow-4 object-fit-cover"
+            alt="Sign Up Image" />
+        </div>
+      </div>
+    </div>
+</section>
+{%endblock%}
