@@ -102,8 +102,8 @@ def login():
     if res['state'] == 1:
         user_info = my_db.get_user_info(email)
         if user_info:
-            session['user_id'] = user_info['id']
-            session['user_email'] = user_info['email']
+            session['user_id'] = user_info.id
+            session['user_email'] = user_info.email
             return redirect("/index")
     return redirect("/")
 
@@ -119,8 +119,8 @@ def register():
         user_info = my_db.get_user_info(email)
         if user_info:
             print()
-            session['user_id'] = user_info['id']
-            session['user_email'] = user_info['email']
+            session['user_id'] = user_info.id
+            session['user_email'] = user_info.email
             return redirect("/index")
         return redirect("/signup")
     else:

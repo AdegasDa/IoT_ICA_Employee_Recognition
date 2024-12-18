@@ -80,6 +80,17 @@ def register(email, password, confirm_password):
         return {"state": 1, "message": "Successfully registered"}
 
 
+def get_all_users():
+    users = User.query.all()
+
+    if users:
+        res = [user for user in users]
+        res.sort(key=lambda user: user.email)
+        return res
+    
+    return None
+
+
 def get_user_info(email):
     res = User.query.filter_by(email=email).first()
     

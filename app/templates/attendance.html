@@ -6,8 +6,8 @@
     <div class="mx-3">
         <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-                <li><a class="nav-link pe-auto px-2 link-secondary">Home</a></li>
-                <li><a href="{{ url_for('attendance') }}" class="nav-link px-2 link-body-emphasis">Attendance</a></li>
+                <li><a href="{{ url_for('index') }}" class="nav-link px-2 link-body-emphasis">Home</a></li>
+                <li><a class="nav-link pe-auto px-2 link-secondary">Attendance</a></li>
                 {% if is_admin %}
                 <li><a href="{{ url_for('admin') }}" class="nav-link px-2 link-body-emphasis">Admin</a></li>
                 {% endif %}
@@ -29,72 +29,6 @@
         </div>
     </div>
 </header>
-
-<main class="px-5">
-    <h1 class="my-5 text-center fw-bold">January, 12</h1>
-    <div class="row justify-content-center">
-        <!-- First Badge -->
-        <div class="col-md-3 me-md-5 mb-3 my-md-0 bg-white shadow-lg rounded-4 p-2">
-            <div class="badge-card text-start">
-                <div class="badge-icon text-center">📅</div>
-                <hr>
-                <h4>Earnings Overview</h4>
-                <p class="m-0">Hourly Rate: 5$</p>
-                <p class="m-0">Total Hours Worked: 28</p>
-                <p class="m-0 fw-semibold">Current Earned: 140$</p>
-            </div>
-        </div>
-
-        <!-- Second Badge -->
-        <div class="col-md-3 bg-white shadow-lg rounded-4 p-2">
-            <div class="badge-card text-start">
-                <div class="badge-icon text-center">⏰</div>
-                <hr>
-                <h4>Attendance</h4>
-                <p class="m-0">Days Worked This Month: 17</p>
-                <p class="m-0">Missed Days: 0</p>
-                <p class="m-0 fw-semibold">Next Shift: 14/08 (8:10 - 16:30)</p>
-            </div>
-        </div>
-
-        <!-- Break to a new row -->
-        <div class="w-100 my-3"></div>
-
-        <!-- Third Badge -->
-        <div class="col-md-3 mb-3 my-md-0 bg-white shadow-lg rounded-4 p-2">
-            <div class="badge-card text-start">
-                <div class="badge-icon text-center">⏱️</div>
-                <hr>
-                <h4>Shift Insights</h4>
-                <p class="m-0">Longest Shift: 12 hours</p>
-                <p class="m-0">Shortest Shift: 8 hours</p>
-            </div>
-        </div>
-
-        <!-- Fourth Badge -->
-        <div class="col-md-3 mx-md-auto mb-3 my-md-0 bg-white shadow-lg rounded-4 p-2">
-            <div class="badge-card text-start">
-                <div class="badge-icon text-center">📊</div>
-                <hr>
-                <h4>Hours Summary</h4>
-                <p class="m-0">Schedule Hours: 56</p>
-                <p class="m-0">Worked Hours: 50</p>
-                <p class="m-0">Extra Hours: 12</p>
-            </div>
-        </div>
-
-        <!-- Fifth Badge -->
-        <div class="col-md-3 mb-3 my-md-0 bg-white shadow-lg rounded-4 p-2">
-            <div class="badge-card text-start">
-                <div class="badge-icon text-center">✅</div>
-                <hr>
-                <h4>Work Compliance</h4>
-                <p class="m-0">Work Days</p>
-                <p class="m-0">Compliance: 57%</p>
-            </div>
-        </div>
-    </div>
-</main>
 
 <div class="modal fade" id="modalprofile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
