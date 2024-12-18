@@ -82,9 +82,8 @@ def register(email, password, confirm_password):
 
 def get_user_info(email):
     res = User.query.filter_by(email=email).first()
+    
     if res:
-        return {
-            "user_id": res.id,
-            "user_email": res.email
-        }
+        return res
+
     return None

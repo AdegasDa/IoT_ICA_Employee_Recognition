@@ -20,8 +20,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
 app.secret_key = config.get('APP_SECRET_KEY')
 db.init_app(app)
 
-is_admin = str(session["user_id"]) == config.get("GOOGLE_ADMIN_ID")
-
 def login_is_required(function):
     @wraps(function) 
     def wrapper(*args, **kwargs):
@@ -57,18 +55,38 @@ def signup():
 @app.route("/index", methods = ["GET", "POST"])
 @login_is_required
 def index():
-    return render_template("/index.html", is_admin = is_admin)
+    is_admin = str(session['user_id']) == config.get("GOOGLE_ADMIN_ID")
+    user = my_db.get_user_info(session['user_email'])
+
+    return render_template("/index.html", is_admin = is_admin, user = user)
+
+
+@app.route("/attendance", methods = ["GET", "POST"])
+@login_is_required
+def attendance():
+    is_admin = str(session['user_id']) == config.get("GOOGLE_ADMIN_ID")
+    user = my_db.get_user_info(session['user_email'])
+
+    return render_template("/attendance.html", is_admin = is_admin, user = user)
 
 
 @app.route("/admin", methods = ["GET", "POST"])
 @login_is_required
 @admin_is_required
 def admin():
+    is_admin = str(session['user_id']) == config.get("GOOGLE_ADMIN_ID")
     users = my_db.get_all_users()
-    return render_template("/admin.html", users = users)
+    user = my_db.get_user_info(session['user_email'])
+
+    return render_template("/admin.html", users = users, is_admin = is_admin, user = user)
 
 
-@app.route("/logout", methods = ["POST"])
+@app.route("/update/profile/<id>")
+def update_profile(id):
+    pass
+
+
+@app.route("/logout", methods = ["POST", "GET"])
 def logout():
     my_db.logout(session['user_email'])
     session.clear()
@@ -84,8 +102,8 @@ def login():
     if res['state'] == 1:
         user_info = my_db.get_user_info(email)
         if user_info:
-            session['user_id'] = user_info['user_id']
-            session['user_email'] = user_info['user_email']
+            session['user_id'] = user_info['id']
+            session['user_email'] = user_info['email']
             return redirect("/index")
     return redirect("/")
 
@@ -101,8 +119,8 @@ def register():
         user_info = my_db.get_user_info(email)
         if user_info:
             print()
-            session['user_id'] = user_info['user_id']
-            session['user_email'] = user_info['user_email']
+            session['user_id'] = user_info['id']
+            session['user_email'] = user_info['email']
             return redirect("/index")
         return redirect("/signup")
     else:
