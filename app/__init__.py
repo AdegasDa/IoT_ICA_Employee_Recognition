@@ -98,11 +98,6 @@ def admin_users():
     return render_template("/admin_users.html", users = users, is_admin = is_admin, user = user)
 
 
-@app.route("/update/profile/<id>", methods = ["POST", "GET"])
-def update_profile(id):
-    pass
-
-
 @app.route("/add/user", methods=["POST"])
 @login_is_required
 @admin_is_required
@@ -194,10 +189,10 @@ def delete_user(id):
     return redirect(url_for('admin'))
 
 
-@app.route("/edit/user/<id>", methods=["POST"])
+@app.route("/edit/user/<id>/<url>", methods=["POST", "GET"])
 @login_is_required
 @admin_is_required
-def edit_user(id):
+def edit_user(id,url):
     try:
         # Retrieve form data
         email = request.form.get("email")
@@ -217,7 +212,7 @@ def edit_user(id):
 
         # Check the result
         if result["state"] == 1:
-            return redirect(url_for('admin_users'))
+            return redirect(url_for(url))
         else:
             print("Error Editing User:", result)
             return "Error Editing User", 400
