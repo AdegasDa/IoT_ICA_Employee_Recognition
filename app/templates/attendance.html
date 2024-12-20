@@ -30,6 +30,45 @@
     </div>
 </header>
 
+<main class="w-100">
+    <div class="w-75 mx-auto my-5 bg-white shadow-sm rounded-3 overflow-hidden p-2">
+        <table class="table table-hover m-0  table-bordered border-light-subtle">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Arrival</th>
+                    <th scope="col">Departure</th>
+                    <th scope="col">Total Cost</th>
+                    <th scope="col">Date</th>
+                    <th scope="col"><a data-bs-toggle="modal" data-bs-target="#modaladdemployee" class="shadow-sm w-100 btn btn-success rounded-3 px-2 py-1">Add</a></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">1</th>
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td>@mdo</td>
+                    <td>@mdo</td>
+                    <td>@mdo</td>
+                    <td><button class="shadow-sm w-75 rounded-3 btn btn-warning">Edit</button></td>
+                </tr>
+                <tr>
+                    <th scope="row">2</th>
+                    <td>Jacob</td>
+                    <td>Thornton</td>
+                    <td>Thornton</td>
+                    <td>Thornton</td>
+                    <td>Thornton</td>
+                    <td>@fat</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>    
+</main>
+
+<!-- Profile Modal -->
 <div class="modal fade" id="modalprofile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -72,8 +111,12 @@
 
                 <hr class="my-3">
                 <div class="form-group d-flex justify-content-between">
+                    {% if is_admin %}
                     <button class="btn btn-primary w-50 me-1" type="submit">Edit Profile</button>
                     <button type="button" class="btn btn-secondary w-50 ms-1" data-bs-dismiss="modal">Close</button>
+                    {% else %}
+                    <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Close</button>
+                    {%endif%}
                 </div>
             </form>
         </div>
