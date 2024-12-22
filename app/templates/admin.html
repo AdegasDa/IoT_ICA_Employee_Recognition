@@ -12,7 +12,7 @@
                 <li><a class="nav-link px-2 link-secondary pe-auto">Admin</a></li>
                 {% endif %}
             </ul>
-
+            
             <div class="dropdown text-end">
                 <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
@@ -317,10 +317,10 @@
                             <input class="form-check-input" type="checkbox" value="Sunday" name="sunday" id="sunday">
                         </div>
                     </div>
-                </div>                
+                </div>      
                 <hr class="my-3">
                 <div class="form-group d-flex justify-content-between">
-                    <button type="submit" class="btn btn-primary w-50 me-1">Add</button>
+                    <button type="submit" class="btn btn-success w-100" onclick="handleTakePhoto(this.id);" name="{{user_id}}" id="{{user.id}}">Take Photo</button>
                     <button type="button" class="btn btn-secondary w-50 ms-1" data-bs-dismiss="modal">Close</button>
                 </div>
             </form>            

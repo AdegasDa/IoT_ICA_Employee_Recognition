@@ -32,6 +32,14 @@
 
 <main class="w-100">
     <div class="w-75 mx-auto my-5 bg-white shadow-sm rounded-3 overflow-hidden p-2">
+        {% if is_admin %}
+        <select name="" onchange="handleAttendanceRedirect(this.value);" class="mb-2 form-select" id="">
+            {% for employee_info in employees %}
+            <option value="{{ employee_info.user_id }}"><button value="{{ employee_info.user_id }}" onclick="handleAttendanceRedirect(this.value);">{{ employee_info.first_name }} {{ employee_info.last_name }}</button></option>
+            {% endfor %}
+        </select>
+        {% endif %}
+    {%if attendances%}
         <table class="table table-hover m-0  table-bordered border-light-subtle">
             <thead>
                 <tr>
@@ -41,31 +49,25 @@
                     <th scope="col">Departure</th>
                     <th scope="col">Total Cost</th>
                     <th scope="col">Date</th>
-                    <th scope="col"><a data-bs-toggle="modal" data-bs-target="#modaladdemployee" class="shadow-sm w-100 btn btn-success rounded-3 px-2 py-1">Add</a></th>
                 </tr>
             </thead>
             <tbody>
+                {%for attendance in attendances%}
                 <tr>
-                    <th scope="row">1</th>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    <td>@mdo</td>
-                    <td>@mdo</td>
-                    <td><button class="shadow-sm w-75 rounded-3 btn btn-warning">Edit</button></td>
+                    <th scope="row">{{attendance.attendance_id}}</th>
+                    <td>{{employee_name}}</td>
+                    <td>{{attendance.time_of_arrival}}</td>
+                    <td>{{attendance.time_of_departure}}</td>
+                    <td>{{attendance.total_cost}}</td>
+                    <td>{{attendance.date}}</td>
                 </tr>
-                <tr>
-                    <th scope="row">2</th>
-                    <td>Jacob</td>
-                    <td>Thornton</td>
-                    <td>Thornton</td>
-                    <td>Thornton</td>
-                    <td>Thornton</td>
-                    <td>@fat</td>
-                </tr>
+                {%endfor%}
             </tbody>
         </table>
+    {%else%}
     </div>    
+    <h3 class="text-center my-5">No Attendance yet</h3>
+    {%endif%}
 </main>
 
 <!-- Profile Modal -->

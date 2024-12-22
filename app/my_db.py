@@ -62,8 +62,8 @@ class Attendance(db.Model):
     date = db.Column(db.Date, nullable=False)
     time_of_arrival = db.Column(db.Time, nullable=False)
     time_of_departure = db.Column(db.Time, nullable=True)
-    hours_worked = db.Column(db.Numeric(5, 2), nullable=True)
-    total_cost = db.Column(db.Numeric(10, 2), nullable=True)
+    hours_worked = db.Column(db.Float, nullable=True)
+    total_cost = db.Column(db.Float, nullable=True)
 
     # Relationship to Employee
     employee = relationship('Employees', back_populates='attendance')
@@ -75,22 +75,6 @@ class Attendance(db.Model):
         self.time_of_departure = time_of_departure
         self.hours_worked = hours_worked
         self.total_cost = total_cost
-
-
-    @hybrid_property
-    def calculated_hours_worked(self):
-        if self.time_of_arrival and self.time_of_departure:
-            arrival = datetime.combine(self.date, self.time_of_arrival)
-            departure = datetime.combine(self.date, self.time_of_departure)
-            delta = departure - arrival
-            return delta.total_seconds() / 3600 
-        return None
-
-    @hybrid_property
-    def calculated_total_cost(self):
-        if self.calculated_hours_worked and self.employee:
-            return self.calculated_hours_worked * self.employee.hourly_rate
-        return None
 
 
 def login(email, password):
@@ -175,6 +159,14 @@ def get_all_employees():
         res.sort(key=lambda employees: employees.hourly_rate)
         return res
     
+    return None
+
+
+def get_employee(user_id):
+    employee = Employees.query.filter_by(user_id = user_id).first()
+
+    if employee:
+        return employee
     return None
 
 
@@ -322,3 +314,78 @@ def update_user(user_id, user_data):
     except Exception as e:
         db.session.rollback()
         return {"state": 0, "message": f"Error updating user: {str(e)}"}
+
+
+def add_attendance(attendance):
+    try:
+        new_attendance = Attendance(
+            employee_id=attendance['employee_id'],
+            date=attendance['date'],
+            time_of_arrival=attendance['time_of_arrival'],
+            time_of_departure=attendance['time_of_departure'],
+            hours_worked=attendance['hours_worked'],
+            total_cost=attendance['total_cost']
+        )
+
+        db.session.add(new_attendance)
+        db.session.commit()
+        return {"state": 1, "message": "Attendance added successfully"}
+    except Exception as e:
+        # Rollback in case of any errors
+        db.session.rollback()
+        return {"state": 0, "message": f"Error adding attendance: {str(e)}"}
+
+
+def update_attendance(employee_id, new_attendance):
+    try:
+        current_date = datetime.now() 
+        
+        attendance = Attendance.query.filter_by(employee_id = employee_id, date = current_date).first()
+        attendance.time_of_departure = new_attendance['time_of_departure']
+        attendance.hours_worked = new_attendance['hours_worked']
+        attendance.total_cost = new_attendance['total_cost']
+
+        db.session.commit()
+
+        return {"state": 1, "message": "Attendance added successfully"}
+    except Exception as e:
+        # Rollback in case of any errors
+        db.session.rollback()
+        return {"state": 0, "message": f"Error adding attendance: {str(e)}"}
+
+
+def get_attendances(employee_id):
+    attendances = Attendance.query.filter_by(employee_id = employee_id).all()
+
+    if attendances:
+        res = [attendance for attendance in attendances]
+        res.sort(key=lambda employees: employees.date, reverse=True)
+        return res
+    
+    return None
+
+
+def get_current_attendance(employee_id):
+    attendance = Attendance.query.filter_by(employee_id = employee_id, date = datetime.now, time_of_departure = None).all()
+
+    if attendance:
+        return attendance
+    
+    return None
+
+
+def get_current_attendances():
+    attendances = Attendance.query.filter_by(date = datetime.now(), time_of_departure = None).all()
+
+    if attendances:
+        res = [attendance for attendance in attendances]
+        res.sort(key=lambda employees: employees.time_of_arrival, reverse=True)
+        
+        for attendance in res:
+            employee = get_employee(attendance.employee_id)
+            if (employee):
+                attendance.employee_name = "{employee.first_name} {employee.last_name}"
+
+        return res
+    
+    return None

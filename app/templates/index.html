@@ -32,68 +32,36 @@
 
 <main class="px-5">
     <h1 class="my-5 text-center fw-bold">January, 12</h1>
-    <div class="row justify-content-center">
-        <!-- First Badge -->
-        <div class="col-md-3 me-md-5 mb-3 my-md-0 bg-white shadow-lg rounded-4 p-2">
-            <div class="badge-card text-start">
-                <div class="badge-icon text-center">📅</div>
-                <hr>
-                <h4>Earnings Overview</h4>
-                <p class="m-0">Hourly Rate: 5$</p>
-                <p class="m-0">Total Hours Worked: 28</p>
-                <p class="m-0 fw-semibold">Current Earned: 140$</p>
-            </div>
-        </div>
-
-        <!-- Second Badge -->
-        <div class="col-md-3 bg-white shadow-lg rounded-4 p-2">
-            <div class="badge-card text-start">
-                <div class="badge-icon text-center">⏰</div>
-                <hr>
-                <h4>Attendance</h4>
-                <p class="m-0">Days Worked This Month: 17</p>
-                <p class="m-0">Missed Days: 0</p>
-                <p class="m-0 fw-semibold">Next Shift: 14/08 (8:10 - 16:30)</p>
-            </div>
-        </div>
-
-        <!-- Break to a new row -->
-        <div class="w-100 my-3"></div>
-
-        <!-- Third Badge -->
-        <div class="col-md-3 mb-3 my-md-0 bg-white shadow-lg rounded-4 p-2">
-            <div class="badge-card text-start">
-                <div class="badge-icon text-center">⏱️</div>
-                <hr>
-                <h4>Shift Insights</h4>
-                <p class="m-0">Longest Shift: 12 hours</p>
-                <p class="m-0">Shortest Shift: 8 hours</p>
-            </div>
-        </div>
-
-        <!-- Fourth Badge -->
-        <div class="col-md-3 mx-md-auto mb-3 my-md-0 bg-white shadow-lg rounded-4 p-2">
-            <div class="badge-card text-start">
-                <div class="badge-icon text-center">📊</div>
-                <hr>
-                <h4>Hours Summary</h4>
-                <p class="m-0">Schedule Hours: 56</p>
-                <p class="m-0">Worked Hours: 50</p>
-                <p class="m-0">Extra Hours: 12</p>
-            </div>
-        </div>
-
-        <!-- Fifth Badge -->
-        <div class="col-md-3 mb-3 my-md-0 bg-white shadow-lg rounded-4 p-2">
-            <div class="badge-card text-start">
-                <div class="badge-icon text-center">✅</div>
-                <hr>
-                <h4>Work Compliance</h4>
-                <p class="m-0">Work Days</p>
-                <p class="m-0">Compliance: 57%</p>
-            </div>
-        </div>
+    <div class="d-flex justify-content-center">
+        <h3 class="text-center" id="identification_status"></h3>
     </div>
+
+    {%if attendances%}
+    <div class="w-75 mx-auto my-5 bg-white shadow-sm rounded-3 overflow-hidden p-2">
+        <table class="table table-hover m-0  table-bordered border-light-subtle">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Arrival</th>
+                    <th scope="col">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {%for attendance in attendances%}
+                <tr>
+                    <th scope="row">{{attendance.attendance_id}}</th>
+                    <td>{{attendance.employee_name}}</td>
+                    <td>{{attendance.time_of_arrival}}</td>
+                    <td>{{attendance.date}}</td>
+                </tr>
+                {%endfor%}
+            </tbody>
+        </table>
+    </div>    
+    {% else %}
+    <h3 class="text-center my-5">No Attendance yet</h3>
+    {%endif%}
 </main>
 
 <div class="modal fade" id="modalprofile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">

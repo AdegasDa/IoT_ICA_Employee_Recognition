@@ -2,9 +2,10 @@ from flask import Flask, url_for,render_template, request, redirect, session, js
 
 from datetime import datetime
 import json
-import time
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from functools import wraps
+from decimal import Decimal
 
 from .config import config 
 from . import my_db, pb
@@ -59,7 +60,9 @@ def index():
     is_admin = str(session['user_id']) == config.get("GOOGLE_ADMIN_ID")
     user = my_db.get_user_info(session['user_email'])
 
-    return render_template("/index.html", is_admin = is_admin, user = user)
+    attendances = my_db.get_current_attendances()
+
+    return render_template("/index.html", is_admin = is_admin, user = user, attendances = attendances)
 
 
 @app.route("/attendance", methods = ["GET", "POST"])
@@ -67,8 +70,30 @@ def index():
 def attendance():
     is_admin = str(session['user_id']) == config.get("GOOGLE_ADMIN_ID")
     user = my_db.get_user_info(session['user_email'])
+    employee = my_db.get_employee(user.id)
+    attendances = my_db.get_attendances(employee.employee_id)
+    employee_name = employee.first_name + " " + employee.last_name
+    employees = my_db.get_all_employees()
+    employees.remove(employee)
+    employees.insert(0,employee)
 
-    return render_template("/attendance.html", is_admin = is_admin, user = user)
+    return render_template("/attendance.html",employees=employees,employee_name = employee_name, is_admin = is_admin, user = user, attendances = attendances)
+
+
+@app.route("/attendance/<user_id>", methods = ["GET", "POST"])
+@login_is_required
+@admin_is_required
+def attendance_admin(user_id):
+    is_admin = str(session['user_id']) == config.get("GOOGLE_ADMIN_ID")
+    user = my_db.get_user_info(session['user_email'])
+    employees = my_db.get_all_employees()
+    employee = my_db.get_employee(int(user_id))
+    attendances = my_db.get_attendances(int(employee.employee_id))
+    employee_name = employee.first_name + " " + employee.last_name
+    employees.remove(employee)
+    employees.insert(0,employee)
+
+    return render_template("/attendance.html",employees=employees,employee_name = employee_name, is_admin = is_admin, user = user, attendances = attendances)
 
 
 @app.route("/admin", methods = ["GET", "POST"])
@@ -135,6 +160,56 @@ def add_user():
     except Exception as e:
         print(f"Exception in add_user: {str(e)}")
         return "Internal Server Error", 500
+
+@app.route("/create/attendance/<user_id>", methods=["POST", "GET"])
+def create_attendance(user_id):
+    employee = my_db.get_employee(int(user_id))
+    
+    attendance = request.json
+
+    attendance["employee_id"] = int(employee.employee_id) 
+    attendance["total_cost"] = None 
+    attendance["date"] = datetime.strptime(attendance["date"], "%Y-%m-%d").date() 
+    attendance["time_of_arrival"] = datetime.strptime(attendance["time_of_arrival"], "%H:%M:%S").time() 
+    attendance["time_of_departure"] = None
+    attendance["hours_worked"] = None
+
+    result = my_db.add_attendance(attendance)
+
+    if result["state"] == 1:
+            return jsonify({"state": 1, "message": "Attendance created successfully"})
+    else:
+        return jsonify(result), 400
+    
+
+@app.route("/update/attendance/<user_id>", methods=["POST", "GET"])
+def update_attendance(user_id):
+    employee = my_db.get_employee(int(user_id))
+    current_attendance = my_db.get_current_attendance(int(employee.employee_id))
+
+    attendance = request.json
+
+    attendance["time_of_departure"] = datetime.strptime(attendance["time_of_departure"], "%H:%M:%S").time() if attendance.get("time_of_departure") else None
+
+    time_of_arrival = datetime.strptime(current_attendance.time_of_arrivale, "%H:%M:%S").time()
+
+    if attendance["time_of_departure"]:
+        date_today = datetime.today().date()
+        time_of_arrival_dt = datetime.combine(date_today, time_of_arrival)
+        time_of_departure_dt = datetime.combine(date_today, attendance["time_of_departure"])
+
+        delta = time_of_departure_dt - time_of_arrival_dt
+        attendance["hours_worked"] = delta.total_seconds() / 3600  # Convert seconds to hours
+    else:
+        attendance["hours_worked"] = 0.0
+
+    attendance["total_cost"] = float(Decimal(attendance["hours_worked"]) * Decimal(employee.hourly_rate))
+    result = my_db.update_attendance(employee.employee_id, attendance)
+
+    if result["state"] == 1:
+        return jsonify({"state": 1, "message": "Attendance updated successfully"})
+    else:
+        return jsonify(result), 400
 
 
 
