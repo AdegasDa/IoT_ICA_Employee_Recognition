@@ -37,19 +37,40 @@ function setupPubNub() {
 };
 
 function handleMessage(message) {
-    if (message.take_photo) {
-        const takePhotoStatus = document.getElementById("photo_status");
-        if (takePhotoStatus) { takePhotoStatus.innerHTML = "The photo is being taken"; }
+    console.log(message)
+    if ("message" in message) {
+        message = message["message"]
+    }
+    if (message.camera_status) {
+        const el = document.getElementById("camera_status");
+        if (message.camera_status == '1') {
+            if (el) {
+                el.innerHTML = "Camera Status: On";
+            }
+        } else {
+            el.innerHTML = "Camera Status: Off";
+        }
     }
 
-    if (message.employee_identified) {
-        handleArrival(message.user_id);
+    if (message.employee_identified && message.employee_identified == 1) {
+        handleArrival(message.employee_id);
 
         const identification_status = document.getElementById("identification_status");
         if (identification_status) { identification_status.innerHTML = "Employee Successfully Identified"; }
+    } else {
+        const identification_status = document.getElementById("identification_status");
+        if (identification_status) { identification_status.innerHTML = ""; }
     }
 
-    if (message.photo_taken == 1) {
+    if (message.confidence) {
+        const confidence = document.getElementById("confidence");
+        if (confidence) { confidence.innerHTML = `Confidence: ${message.confidence}`; }
+    } else {
+        const confidence = document.getElementById("confidence");
+        if (confidence) { confidence.innerHTML = ""; }
+    }
+
+    if (message.photo_taken && message.photo_taken == 1) {
         const status = document.getElementById("photo_status");
         if (status) { status.innerHTML = "Photo taken successfully"; }
     }
@@ -77,13 +98,13 @@ function subscribe()
 
 
 
-function handleArrival(user_id) {
+function handleArrival(employee_id) {
     const currentDateTime = new Date();
 
     const timeOfArrival = currentDateTime.toTimeString().split(' ')[0];
     const timeOfDepartureDate = new Date(currentDateTime.getTime() + 8 * 60 * 60 * 1000);
 
-    fetch(`/create/attendance/${user_id}`, {
+    fetch(`/create/attendance/${employee_id}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -102,15 +123,17 @@ function handleArrival(user_id) {
     .catch(error => {
         console.error("Error sending attendance data:", error);
     });
+
+    // window.location.href = `/index`;
 };
 
-function handleDeparture(user_id) {
+function handleDeparture(employee_id) {
     const currentDateTime = new Date();
-
+    
     const timeOfDepartureDate = new Date(currentDateTime.getTime() + 8 * 60 * 60 * 1000);
     const timeOfDeparture = timeOfDepartureDate.toTimeString().split(' ')[0];
-
-    fetch(`/update/attendance/${user_id}`, {
+    
+    fetch(`/update/attendance/${employee_id}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -128,6 +151,8 @@ function handleDeparture(user_id) {
     .catch(error => {
         console.error("Error sending attendance data:", error);
     });
+
+    // window.location.href = `/index`;
 };
 
 function handleAttendanceRedirect(id) {
@@ -138,10 +163,11 @@ function handleAttendanceRedirect(id) {
 function handleTakePhoto(employee_id) {
     publishMessage(
         {
-            "employee_id": employee_id,
-            "take_photo": 1,
+            "camera_status": 0,
             "employee_identified": 0,
-            "photo_taken": 0
+            "take_photo": 1,
+            "photo_taken": 0,
+            "employee_id": employee_id
         }
     )
 }

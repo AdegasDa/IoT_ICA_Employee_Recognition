@@ -61,8 +61,9 @@
                         {{", ".join(employee.day_of_week.split(" ")) }}
                     </td>
                     <td>
-                        <div class="d-flex justify-content-between">
+                        <div class="d-flex justify-content-around">
                             <a data-bs-toggle="modal" data-bs-target="#modaleditemployee{{employee.employee_id}}" class="shadow-sm px-3 rounded-3 btn btn-warning">Edit</a>
+                            <button type="submit" class="btn btn-primary" onclick="handleTakePhoto(this.id);" name="{{employee.employee_id}}" id="{{employee.employee_id}}">Take Photo</button>
                             <a data-bs-toggle="modal" data-bs-target="#modaldeleteemployee{{employee.employee_id}}" class="shadow-sm ms-1 rounded-3 btn btn-danger px-3">Delete</a>
                         </div>
                     </td>
@@ -320,7 +321,6 @@
                 </div>      
                 <hr class="my-3">
                 <div class="form-group d-flex justify-content-between">
-                    <button type="submit" class="btn btn-success w-100" onclick="handleTakePhoto(this.id);" name="{{user_id}}" id="{{user.id}}">Take Photo</button>
                     <button type="button" class="btn btn-secondary w-50 ms-1" data-bs-dismiss="modal">Close</button>
                 </div>
             </form>            

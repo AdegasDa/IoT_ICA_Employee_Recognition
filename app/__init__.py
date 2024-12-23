@@ -161,9 +161,9 @@ def add_user():
         print(f"Exception in add_user: {str(e)}")
         return "Internal Server Error", 500
 
-@app.route("/create/attendance/<user_id>", methods=["POST", "GET"])
-def create_attendance(user_id):
-    employee = my_db.get_employee(int(user_id))
+@app.route("/create/attendance/<employee_id>", methods=["POST", "GET"])
+def create_attendance(employee_id):
+    employee = my_db.get_employee_with_employee_id(int(employee_id))
     
     attendance = request.json
 
@@ -182,19 +182,19 @@ def create_attendance(user_id):
         return jsonify(result), 400
     
 
-@app.route("/update/attendance/<user_id>", methods=["POST", "GET"])
-def update_attendance(user_id):
-    employee = my_db.get_employee(int(user_id))
-    current_attendance = my_db.get_current_attendance(int(employee.employee_id))
+@app.route("/update/attendance/<employee_id>", methods=["POST", "GET"])
+def update_attendance(employee_id):
+    employee = my_db.get_employee_with_employee_id(int(employee_id))
+    current_attendance = my_db.get_current_attendance(int(employee_id))
 
     attendance = request.json
 
-    attendance["time_of_departure"] = datetime.strptime(attendance["time_of_departure"], "%H:%M:%S").time() if attendance.get("time_of_departure") else None
+    attendance["time_of_departure"] = datetime.now().time() 
 
-    time_of_arrival = datetime.strptime(current_attendance.time_of_arrivale, "%H:%M:%S").time()
+    time_of_arrival = current_attendance.time_of_arrival
 
     if attendance["time_of_departure"]:
-        date_today = datetime.today().date()
+        date_today = datetime.now().date()
         time_of_arrival_dt = datetime.combine(date_today, time_of_arrival)
         time_of_departure_dt = datetime.combine(date_today, attendance["time_of_departure"])
 
@@ -203,8 +203,9 @@ def update_attendance(user_id):
     else:
         attendance["hours_worked"] = 0.0
 
-    attendance["total_cost"] = float(Decimal(attendance["hours_worked"]) * Decimal(employee.hourly_rate))
-    result = my_db.update_attendance(employee.employee_id, attendance)
+    cost = float(Decimal(attendance["hours_worked"]) * Decimal(employee.hourly_rate))
+    attendance["total_cost"] = round(cost,2)
+    result = my_db.update_attendance(employee_id, attendance)
 
     if result["state"] == 1:
         return jsonify({"state": 1, "message": "Attendance updated successfully"})

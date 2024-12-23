@@ -170,6 +170,14 @@ def get_employee(user_id):
     return None
 
 
+def get_employee_with_employee_id(employee_id):
+    employee = Employees.query.filter_by(employee_id = employee_id).first()
+
+    if employee:
+        return employee
+    return None
+
+
 def add_employee(employee):
     try:
         existing_employee = Employees.query.filter_by(user_id=employee['user_id']).first()
@@ -317,6 +325,10 @@ def update_user(user_id, user_data):
 
 
 def add_attendance(attendance):
+    existing_attendance = get_current_attendance(attendance['employee_id'])
+    if existing_attendance is None:
+         return {"state": 0, "message": f"Error adding attendance"}
+
     try:
         new_attendance = Attendance(
             employee_id=attendance['employee_id'],
@@ -338,9 +350,13 @@ def add_attendance(attendance):
 
 def update_attendance(employee_id, new_attendance):
     try:
-        current_date = datetime.now() 
+        current_date = datetime.now().date()
         
-        attendance = Attendance.query.filter_by(employee_id = employee_id, date = current_date).first()
+        attendance = Attendance.query.filter_by(employee_id = employee_id, date = current_date, time_of_departure = None).first()
+
+        if not attendance:
+            return {"state": 0, "message": f"Error adding attendance: {str(e)}"}
+
         attendance.time_of_departure = new_attendance['time_of_departure']
         attendance.hours_worked = new_attendance['hours_worked']
         attendance.total_cost = new_attendance['total_cost']
@@ -366,7 +382,7 @@ def get_attendances(employee_id):
 
 
 def get_current_attendance(employee_id):
-    attendance = Attendance.query.filter_by(employee_id = employee_id, date = datetime.now, time_of_departure = None).all()
+    attendance = Attendance.query.filter_by(employee_id = employee_id, date = datetime.now().date(), time_of_departure = None).first()
 
     if attendance:
         return attendance
@@ -375,16 +391,16 @@ def get_current_attendance(employee_id):
 
 
 def get_current_attendances():
-    attendances = Attendance.query.filter_by(date = datetime.now(), time_of_departure = None).all()
+    attendances = Attendance.query.filter_by(date = datetime.now().date(), time_of_departure = None).all()
 
     if attendances:
         res = [attendance for attendance in attendances]
         res.sort(key=lambda employees: employees.time_of_arrival, reverse=True)
         
         for attendance in res:
-            employee = get_employee(attendance.employee_id)
+            employee = get_employee_with_employee_id(attendance.employee_id)
             if (employee):
-                attendance.employee_name = "{employee.first_name} {employee.last_name}"
+                attendance.employee_name = str(employee.first_name) + " " + str(employee.last_name)
 
         return res
     

@@ -34,18 +34,19 @@ def getImagesAndLabels(path):
     faceSamples = []
     ids = []
 
-    # Map folder names to integer IDs
-    label_map = {os.path.basename(subfolder): idx for idx, subfolder in enumerate(subfolders, start=1)}
-
     for subfolder in subfolders:
         label_name = os.path.basename(subfolder)
-        id = label_map[label_name]  # Get the integer ID for this folder
+        try:
+            id = int(label_name)  # Directly use the folder name as the ID
+        except ValueError:
+            print(f"[WARNING] Skipping folder {label_name} as it is not a valid integer ID.")
+            continue
 
         imagePaths = [os.path.join(subfolder, f) for f in os.listdir(subfolder) if f.endswith(('.jpg', '.jpeg', '.png'))]
 
         for imagePath in imagePaths:
             try:
-                PIL_img = Image.open(imagePath).convert('L')
+                PIL_img = Image.open(imagePath).convert('L')  # Convert to grayscale
                 img_numpy = np.array(PIL_img, 'uint8')
                 faces = detector.detectMultiScale(img_numpy)
                 if len(faces) == 0:
@@ -53,11 +54,12 @@ def getImagesAndLabels(path):
                     continue
                 for (x, y, w, h) in faces:
                     faceSamples.append(img_numpy[y:y+h, x:x+w])
-                    ids.append(id)
+                    ids.append(id)  # Append the folder name as the ID
             except Exception as e:
                 print(f"[ERROR] Skipping image {imagePath} due to error: {e}")
 
     return faceSamples, ids
+
     
 
 if __name__ == '__main__':

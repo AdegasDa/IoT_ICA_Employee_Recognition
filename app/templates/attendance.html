@@ -56,8 +56,8 @@
                 <tr>
                     <th scope="row">{{attendance.attendance_id}}</th>
                     <td>{{employee_name}}</td>
-                    <td>{{attendance.time_of_arrival}}</td>
-                    <td>{{attendance.time_of_departure}}</td>
+                    <td>{{(attendance.time_of_arrival).strftime("%H:%M")}}</td>
+                    <td>{{(attendance.time_of_departure).strftime("%H:%M")}}</td>
                     <td>{{attendance.total_cost}}</td>
                     <td>{{attendance.date}}</td>
                 </tr>
