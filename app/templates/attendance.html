@@ -7,7 +7,9 @@
         <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
                 <li><a href="{{ url_for('index') }}" class="nav-link px-2 link-body-emphasis">Home</a></li>
+                {% if user.read_access == 1 %}
                 <li><a class="nav-link pe-auto px-2 link-secondary">Attendance</a></li>
+                {% endif %}
                 {% if is_admin %}
                 <li><a href="{{ url_for('admin') }}" class="nav-link px-2 link-body-emphasis">Admin</a></li>
                 {% endif %}
@@ -31,7 +33,11 @@
 </header>
 
 <main class="w-100">
+    <div class="my-5 mx-auto">
+        <h3 class="text-center"><strong>Working Days:</strong> {{", ".join(employee_for_day.day_of_week.split(" "))}}</h3>
+    </div>
     <div class="w-75 mx-auto my-5 bg-white shadow-sm rounded-3 overflow-hidden p-2">
+
         {% if is_admin %}
         <select name="" onchange="handleAttendanceRedirect(this.value);" class="mb-2 form-select" id="">
             {% for employee_info in employees %}
@@ -84,7 +90,7 @@
                 <div class="form-group">
                     <label>Email:</label>
                     <input type="hidden" name="id" value="{{user.id}}">
-                    <input type="email" class="form-control" name="email" value="{{user.email}}">
+                    <input readonly type="email" class="form-control" name="email" value="{{user.email}}">
                 </div>
 
                 <div class="form-group my-2">
@@ -96,29 +102,24 @@
                     <div class="w-50 d-flex d-flex align-items-center">
                         <label class="me-2">Write Access:</label>
                         {%if user.write_access == 1 %}
-                        <input checked type="checkbox" name="write_access">
+                        <input readonly checked type="checkbox" name="write_access">
                         {% else %}
-                        <input type="checkbox" name="write_access">
+                        <input readonly type="checkbox" name="write_access">
                         {%endif%}
                     </div>
                     <div class="w-50 d-flex align-items_center">
                         <label class="me-2">Read Access:</label>
                         {% if user.read_access == 1 %}
-                        <input checked type="checkbox" name="read_access">
+                        <input readonly checked type="checkbox" name="read_access">
                         {%else%}
-                        <input type="checkbox" name="read_access">
+                        <input readonly type="checkbox" name="read_access">
                         {%endif%}
                     </div>
                 </div>
 
                 <hr class="my-3">
                 <div class="form-group d-flex justify-content-between">
-                    {% if is_admin %}
-                    <button class="btn btn-primary w-50 me-1" type="submit">Edit Profile</button>
-                    <button type="button" class="btn btn-secondary w-50 ms-1" data-bs-dismiss="modal">Close</button>
-                    {% else %}
                     <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Close</button>
-                    {%endif%}
                 </div>
             </form>
         </div>

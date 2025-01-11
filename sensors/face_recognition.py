@@ -70,9 +70,9 @@ def face_recognition():
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
             id, confidence = recognizer.predict(gray[y:y+h, x:x+w])
 
-            if 30 < confidence < 100:  # Face recognized with confidence
+            if confidence < 100 and confidence > 30:  # Face recognized with confidence
                 folder_name = id_to_folder.get(id, "Unknown")
-                confidence_text = f"{round(100 - confidence)}%"
+                confidence_text = f"{round(100 - confidence)}"
                 print(f"Face matched for folder '{folder_name}' with confidence of {confidence_text}")
                 res = {"id": id, "folder_name": folder_name, "confidence": confidence_text}
                 cam.release()
@@ -80,7 +80,7 @@ def face_recognition():
                 return res
             else:
                 fail_count += 1
-                print(f"Unknown Face. Confidence {round(100 - confidence)}%. Attempt {fail_count}")
+                print(f"Unknown Face. Confidence {round(100 - confidence)}. Attempt {fail_count}")
                 return None
 
     cam.release()

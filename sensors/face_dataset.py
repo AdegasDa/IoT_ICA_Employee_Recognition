@@ -12,6 +12,10 @@ def face_dataset(employee_id):
     face_id = employee_id
     print("\n [INFO] Initializing face capture. Look the camera and wait ...")
 
+    if not cam.isOpened():
+        print("[ERROR] Camera not accessible.")
+        return None
+
     count = 0
     while(True):
         ret, img = cam.read()

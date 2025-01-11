@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, ForeignKey, Date, Time, Numeric
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 import bcrypt
+from sqlalchemy import and_
 
 db = SQLAlchemy()
 
@@ -326,26 +327,26 @@ def update_user(user_id, user_data):
 
 def add_attendance(attendance):
     existing_attendance = get_current_attendance(attendance['employee_id'])
-    if existing_attendance is None:
+    if existing_attendance is not None:
          return {"state": 0, "message": f"Error adding attendance"}
 
-    try:
-        new_attendance = Attendance(
-            employee_id=attendance['employee_id'],
-            date=attendance['date'],
-            time_of_arrival=attendance['time_of_arrival'],
-            time_of_departure=attendance['time_of_departure'],
-            hours_worked=attendance['hours_worked'],
-            total_cost=attendance['total_cost']
-        )
+    # try:
+    new_attendance = Attendance(
+        employee_id=attendance['employee_id'],
+        date=attendance["date"],
+        time_of_arrival=attendance["time_of_arrival"],
+        time_of_departure=attendance['time_of_departure'],
+        hours_worked=attendance['hours_worked'],
+        total_cost=attendance['total_cost']
+    )
 
-        db.session.add(new_attendance)
-        db.session.commit()
-        return {"state": 1, "message": "Attendance added successfully"}
-    except Exception as e:
-        # Rollback in case of any errors
-        db.session.rollback()
-        return {"state": 0, "message": f"Error adding attendance: {str(e)}"}
+    db.session.add(new_attendance)
+    db.session.commit()
+    return {"state": 1, "message": "Attendance added successfully"}
+    # except Exception as e:
+    #     # Rollback in case of any errors
+    #     db.session.rollback()
+    #     return {"state": 0, "message": f"Error adding attendance: {str(e)}"}
 
 
 def update_attendance(employee_id, new_attendance):
@@ -371,7 +372,12 @@ def update_attendance(employee_id, new_attendance):
 
 
 def get_attendances(employee_id):
-    attendances = Attendance.query.filter_by(employee_id = employee_id).all()
+    attendances = Attendance.query.filter(
+        and_(
+            Attendance.employee_id == employee_id,
+            Attendance.time_of_departure.isnot(None)
+        )
+    ).all()
 
     if attendances:
         res = [attendance for attendance in attendances]

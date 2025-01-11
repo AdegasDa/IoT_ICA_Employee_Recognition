@@ -97,34 +97,41 @@ function subscribe()
 }
 
 
+let lastAttendanceTime = {};
 
 function handleArrival(employee_id) {
-    const currentDateTime = new Date();
 
-    const timeOfArrival = currentDateTime.toTimeString().split(' ')[0];
-    const timeOfDepartureDate = new Date(currentDateTime.getTime() + 8 * 60 * 60 * 1000);
+    const now = new Date().getTime();
+    if (lastAttendanceTime[employee_id] && now - lastAttendanceTime[employee_id] < 5000) { 
+        console.log("Skipping duplicate attendance creation for employee:", employee_id);
+        return;
+    }
+
+    lastAttendanceTime[employee_id] = now;
 
     fetch(`/create/attendance/${employee_id}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify(
-            {
-                "date": currentDateTime.toISOString().split('T')[0],
-                "time_of_arrival": timeOfArrival
-            }
-        )
+        body: JSON.stringify({
+            "date": new Date().toISOString().split('T')[0], 
+            "time_of_arrival": new Date().toTimeString().split(' ')[0],
+            "total_cost": null,
+            "time_of_departure": null,
+            "hours_worked": null
+        })
     })
     .then(response => response.json())
     .then(data => {
         console.log("Attendance recorded successfully:", data);
+        window.location.href = `/index`;
     })
     .catch(error => {
         console.error("Error sending attendance data:", error);
+        window.location.href = `/index`;
     });
 
-    // window.location.href = `/index`;
 };
 
 function handleDeparture(employee_id) {
@@ -147,12 +154,13 @@ function handleDeparture(employee_id) {
     .then(response => response.json())
     .then(data => {
         console.log("Attendance updated successfully:", data);
+        window.location.href = `/index`;
     })
     .catch(error => {
         console.error("Error sending attendance data:", error);
+        window.location.href = `/index`;
     });
 
-    // window.location.href = `/index`;
 };
 
 function handleAttendanceRedirect(id) {

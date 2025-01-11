@@ -12,6 +12,7 @@ from gpiozero import LED
 
 operation_lock = threading.Lock()
 photo_taken_recently = False
+taking_photo = False
 
 class Listener(SubscribeListener):
     def status(self, pubnub, status):
@@ -33,32 +34,41 @@ subscription = pubnub.channel(app_channel).subscription()
 subscription.on_message = lambda message: handle_message(message)
 subscription.subscribe()
 
-async def handle_message(message):
-    global operation_lock, photo_taken_recently
-
-    #print(f"Raw message received: {message.message}")
+def handle_message(message):
+    global operation_lock, photo_taken_recently, taking_photo
 
     try:
+        # Parse the message correctly
+        print(f"Raw message received: {message.message}")
+
+        # Ensure message.message is parsed into a dictionary
         if isinstance(message.message, str):
-            msg = json.loads(message.message)  
+            raw_msg = json.loads(message.message)
         else:
-            msg = message.message
+            raw_msg = message.message
 
-        if "message" in msg:
-            msg = msg["message"]
+        # Extract the actual message payload
+        msg = raw_msg.get("message", {})
 
-        
-        if msg["take_photo"] == 1:
+
+        # Check if "take_photo" exists and equals 1
+        if "take_photo" in msg and msg.get("take_photo") == 1:
+            taking_photo = True
             print("take_photo Present.")
 
-            if operation_lock.locked():
-                print("Another operation is in progress, skipping take_photo.")
+            if photo_taken_recently:
+                print("[INFO] Skipping 'take_photo' request as a photo was recently taken.")
                 return
 
-            with operation_lock:  
-                print("Processing 'take_photo' request...")
-                photo_taken_recently = True 
+            if operation_lock.locked():
+                print("[INFO] Skipping 'take_photo' as another operation is in progress.")
+                return
 
+            with operation_lock:
+                print("[INFO] Processing 'take_photo' request...")
+                photo_taken_recently = True
+
+                # Publish initial camera status
                 publish({
                     "camera_status": 1,
                     "employee_identified": 0,
@@ -67,29 +77,30 @@ async def handle_message(message):
                     "employee_id": msg.get("employee_id", None)
                 })
 
-                await face_dataset(msg["employee_id"])  
+                # Trigger face dataset capture
+                face_dataset(msg.get("employee_id"))
 
+                # Publish photo taken confirmation
                 publish({
                     "camera_status": 0,
                     "employee_identified": 0,
                     "take_photo": 0,
                     "photo_taken": 1,
-                    "employee_id": msg["employee_id"]
+                    "employee_id": msg.get("employee_id")
                 })
 
-                print("Completed 'take_photo' request.")
-                
-                threading.Timer(5, reset_photo_taken_flag).start()  
-        else:
-            pass
-            #print("Key 'take_photo' not found or value is not 1.")
+                print("[INFO] Completed 'take_photo' request.")
 
-    except json.JSONDecodeError as e:
-        print(f"JSON decode error: {e}")
+                # Reset the photo_taken_recently flag after 5 seconds
+                threading.Timer(5, reset_photo_taken_flag).start()
+            taking_photo = False
+
     except KeyError as e:
-        print(f"KeyError: Missing key {e} in the message.")
+        print(f"[ERROR] KeyError: Missing key {e} in the message.")
+    except json.JSONDecodeError as e:
+        print(f"[ERROR] JSON decode error: {e}")
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        print(f"[ERROR] Unexpected error: {e}")
 
 
 
@@ -149,44 +160,52 @@ def reset_photo_taken_flag():
 
 def motion_detection():
     global operation_lock
+    global taking_photo
 
-    while True:
-        if GPIO.input(PIR_pin) and not operation_lock.locked():
-            print("Motion detected")
-            if operation_lock.locked():
-                print("[STATUS] Another operation is in progress, skipping motion detection.")
-                time.sleep(1)
-                continue
+    if not taking_photo:
+        while True:
+            if GPIO.input(PIR_pin) and not operation_lock.locked():
+                employee_recognised = False
 
-            print("[STATUS] Processing motion detection...")
-            publish({
-                "camera_status": 1,
-                "employee_identified": 0,
-                "take_photo": 0,
-                "photo_taken": 0,
-                "employee_id": None
-            })
+                print("Motion detected")
+                if operation_lock.locked():
+                    print("[STATUS] Another operation is in progress, skipping motion detection.")
+                    time.sleep(1)
+                    continue
 
-            res = face_recognition()  
-            if res is not None:
+                print("[STATUS] Processing motion detection...")
                 publish({
-                    "camera_status": 0,
-                    "employee_identified": 1,
+                    "camera_status": 1,
+                    "employee_identified": 0,
                     "take_photo": 0,
                     "photo_taken": 0,
-                    "employee_id": res["id"],
-                    "confidence": res["confidence"]
+                    "employee_id": None
                 })
 
-                time.sleep(12) 
+                res = face_recognition()  
+                if res is not None :
+                    if float(res["confidence"]) > 30.00:
+                        publish({
+                            "camera_status": 0,
+                            "employee_identified": 1,
+                            "take_photo": 0,
+                            "photo_taken": 0,
+                            "employee_id": res["id"],
+                            "confidence": res["confidence"]
+                        })
+                        beep(4)
+                        time.sleep(4) 
+                        print("[STATUS] Completed motion detection.")
 
-            if res is None or res["employee_id"] is None:
-                GPIO.output(LED_pin, True)
-                print("[STATUS] Employee not recognised")
-                time.sleep(6)
-                GPIO.output(LED_pin, False)
-                
-            print("[STATUS] Completed motion detection.")
+                        employee_recognised = True
+
+                if not employee_recognised:
+                    GPIO.output(LED_pin, True)
+                    print("[STATUS] Employee not recognised")
+                    time.sleep(4)
+                    GPIO.output(LED_pin, False)
+                        
+                    print("[STATUS] Completed motion detection.")
 
 
 def beep(repeat):

@@ -77,7 +77,7 @@ def attendance():
     employees.remove(employee)
     employees.insert(0,employee)
 
-    return render_template("/attendance.html",employees=employees,employee_name = employee_name, is_admin = is_admin, user = user, attendances = attendances)
+    return render_template("/attendance.html",employees=employees, employee_for_day=employee,employee_name = employee_name, is_admin = is_admin, user = user, attendances = attendances)
 
 
 @app.route("/attendance/<user_id>", methods = ["GET", "POST"])
@@ -93,7 +93,7 @@ def attendance_admin(user_id):
     employees.remove(employee)
     employees.insert(0,employee)
 
-    return render_template("/attendance.html",employees=employees,employee_name = employee_name, is_admin = is_admin, user = user, attendances = attendances)
+    return render_template("/attendance.html",employee_for_day = employee,employees=employees,employee_name = employee_name, is_admin = is_admin, user = user, attendances = attendances)
 
 
 @app.route("/admin", methods = ["GET", "POST"])
@@ -168,18 +168,15 @@ def create_attendance(employee_id):
     attendance = request.json
 
     attendance["employee_id"] = int(employee.employee_id) 
-    attendance["total_cost"] = None 
     attendance["date"] = datetime.strptime(attendance["date"], "%Y-%m-%d").date() 
     attendance["time_of_arrival"] = datetime.strptime(attendance["time_of_arrival"], "%H:%M:%S").time() 
-    attendance["time_of_departure"] = None
-    attendance["hours_worked"] = None
 
     result = my_db.add_attendance(attendance)
 
     if result["state"] == 1:
             return jsonify({"state": 1, "message": "Attendance created successfully"})
     else:
-        return jsonify(result), 400
+        return jsonify({"state": 0, "message": result["message"]})
     
 
 @app.route("/update/attendance/<employee_id>", methods=["POST", "GET"])
