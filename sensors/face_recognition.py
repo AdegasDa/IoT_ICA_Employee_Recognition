@@ -19,11 +19,15 @@ def get_folder_mapping(dataset_path):
 def face_recognition():
     # Step 2: Load the trained model
     recognizer = cv2.face.LBPHFaceRecognizer_create()
-    recognizer.read('trainer/trainer.yml')
-    cascadePath = "Cascades/haarcascade_frontalface_default.xml"
+    recognizer.read('./trainer/trainer.yml')
+    cascadePath = "./Cascades/haarcascade_frontalface_default.xml"
     faceCascade = cv2.CascadeClassifier(cascadePath)
+    
+    if faceCascade.empty():
+        print("[ERROR] Haarcascade file not found or invalid path.")
+        return None
+    
     font = cv2.FONT_HERSHEY_SIMPLEX
-
     dataset_path = "./dataset"
     id_to_folder = get_folder_mapping(dataset_path)
 
@@ -77,6 +81,7 @@ def face_recognition():
             else:
                 fail_count += 1
                 print(f"Unknown Face. Confidence {round(100 - confidence)}%. Attempt {fail_count}")
+                return None
 
     cam.release()
     cv2.destroyAllWindows()

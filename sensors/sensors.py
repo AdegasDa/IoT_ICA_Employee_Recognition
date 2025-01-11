@@ -7,9 +7,9 @@ from face_dataset import face_dataset
 from face_recognition import face_recognition
 from pubnub.callbacks import SubscribeCallback
 from pubnub.enums import PNStatusCategory
-import threading  # Added for synchronization
+import threading
+from gpiozero import LED
 
-# Global lock for synchronization
 operation_lock = threading.Lock()
 photo_taken_recently = False
 
@@ -33,36 +33,31 @@ subscription = pubnub.channel(app_channel).subscription()
 subscription.on_message = lambda message: handle_message(message)
 subscription.subscribe()
 
-def handle_message(message):
+async def handle_message(message):
     global operation_lock, photo_taken_recently
 
-    # Log the raw message for debugging
-    print(f"Raw message received: {message.message}")
+    #print(f"Raw message received: {message.message}")
 
     try:
-        # Ensure the message is parsed into a dictionary
         if isinstance(message.message, str):
-            msg = json.loads(message.message)  # Parse string to dictionary
+            msg = json.loads(message.message)  
         else:
             msg = message.message
 
         if "message" in msg:
             msg = msg["message"]
 
-        # Check if the required key exists
-        if "take_photo" in msg and msg["take_photo"] == 1:
-            if photo_taken_recently:
-                print("Photo recently taken, skipping this request.")
-                return
+        
+        if msg["take_photo"] == 1:
+            print("take_photo Present.")
 
             if operation_lock.locked():
                 print("Another operation is in progress, skipping take_photo.")
                 return
 
-            # Only proceed if photo_taken is 0
-            with operation_lock:  # Acquire lock
+            with operation_lock:  
                 print("Processing 'take_photo' request...")
-                photo_taken_recently = True  # Set the flag to prevent immediate retries
+                photo_taken_recently = True 
 
                 publish({
                     "camera_status": 1,
@@ -72,10 +67,8 @@ def handle_message(message):
                     "employee_id": msg.get("employee_id", None)
                 })
 
-                # Call the face_dataset function
-                face_dataset(msg["employee_id"])  # Ensure this function is blocking
+                await face_dataset(msg["employee_id"])  
 
-                # After face_dataset completes, send the update
                 publish({
                     "camera_status": 0,
                     "employee_identified": 0,
@@ -86,10 +79,10 @@ def handle_message(message):
 
                 print("Completed 'take_photo' request.")
                 
-                # Reset the flag after a cooldown period
-                threading.Timer(5, reset_photo_taken_flag).start()  # Cooldown for 5 seconds
+                threading.Timer(5, reset_photo_taken_flag).start()  
         else:
-            print("Key 'take_photo' not found or value is not 1.")
+            pass
+            #print("Key 'take_photo' not found or value is not 1.")
 
     except json.JSONDecodeError as e:
         print(f"JSON decode error: {e}")
@@ -102,7 +95,6 @@ def handle_message(message):
 
 
 def my_publish_callback(envelope, status):
-    # Check whether request successfully completed or not
     if not status.is_error():
         pass
     else:
@@ -134,6 +126,7 @@ def publish(message):
 
 PIR_pin = 23
 Buzzer_pin = 24
+LED_pin = 25
 
 data = {}
 data["motion"] = True
@@ -142,13 +135,13 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIR_pin, GPIO.IN)
 GPIO.setup(Buzzer_pin, GPIO.OUT)
+GPIO.setup(LED_pin, GPIO.OUT)
 
 def main():
     motion_detection()
 
 
 def reset_photo_taken_flag():
-    """Resets the photo_taken_recently flag after a cooldown."""
     global photo_taken_recently
     photo_taken_recently = False
     print("Ready to take photos again.")
@@ -160,12 +153,12 @@ def motion_detection():
     while True:
         if GPIO.input(PIR_pin) and not operation_lock.locked():
             print("Motion detected")
-            # if operation_lock.locked():
-            #     print("Another operation is in progress, skipping motion detection.")
-            #     time.sleep(1)
-            #     continue
+            if operation_lock.locked():
+                print("[STATUS] Another operation is in progress, skipping motion detection.")
+                time.sleep(1)
+                continue
 
-            print("Processing motion detection...")
+            print("[STATUS] Processing motion detection...")
             publish({
                 "camera_status": 1,
                 "employee_identified": 0,
@@ -174,8 +167,8 @@ def motion_detection():
                 "employee_id": None
             })
 
-            res = face_recognition()  # Ensure this function is blocking
-            if res is not None and "id" in res:
+            res = face_recognition()  
+            if res is not None:
                 publish({
                     "camera_status": 0,
                     "employee_identified": 1,
@@ -185,9 +178,15 @@ def motion_detection():
                     "confidence": res["confidence"]
                 })
 
-                time.sleep(6)  # Delay to prevent rapid retriggers
+                time.sleep(12) 
+
+            if res is None or res["employee_id"] is None:
+                GPIO.output(LED_pin, True)
+                print("[STATUS] Employee not recognised")
+                time.sleep(6)
+                GPIO.output(LED_pin, False)
                 
-            print("Completed motion detection.")
+            print("[STATUS] Completed motion detection.")
 
 
 def beep(repeat):

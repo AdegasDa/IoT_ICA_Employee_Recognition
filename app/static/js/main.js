@@ -161,6 +161,14 @@ function handleAttendanceRedirect(id) {
 }
 
 function handleTakePhoto(employee_id) {
+    console.log({
+        "camera_status": 0,
+        "employee_identified": 0,
+        "take_photo": 1,
+        "photo_taken": 0,
+        "employee_id": employee_id
+    })
+
     publishMessage(
         {
             "camera_status": 0,
